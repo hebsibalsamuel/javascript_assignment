@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <title></title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"  type="text/javascript"></script>
+
+
+</head>
+<body>
+ <script>
+   var outerWidth = 1200;
+   var outerHeight = 500;
+   var barPadding = 0.2;
+   var margin = { left:130, top:30, right: 30, bottom: 50};
+
+   var xColumn="yr";
+var yColumn="Value";
+
+
+   var innerWidth = outerWidth - margin.left - margin.right;
+   var innerHeight = outerHeight - margin.top - margin.bottom;
+
+   var svg = d3.select("body").append("svg")
+     .attr("width", outerWidth)
+     .attr("height", outerHeight);
+   var g = svg.append("g")
+     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+   var xAxisG = g.append("g")
+     .attr("transform","translate(0," +innerHeight + ")");
+   var yAxisG = g.append("g");
+
+   var xScale = d3.scale.ordinal() .rangeBands([0, innerWidth],barPadding);
+
+   var yScale = d3.scale.linear().range([innerHeight,0]);
+
+   var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+   var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+
+   function type(data){
+     console.log(data);
+     data.forEach(function(d) {
+        d["yr"] = + d["yr"];
+        d["under500"] = + d["under500"];
+        d["above500"] = + d["above500"];
+        d["Value"] = + d["under500"]+d["above500"];
+//console.log(d["Value"]);
+});
+
+        data.sort(function(a,b){return a["yr"]-b["yr"];});
+
+
+
+        xScale.domain( data.map( function (d){ return d[xColumn];}));
+        yScale.domain([0,d3.max(data, function (d){return d[yColumn];})]);
+
+        xAxisG.call(xAxis);
+        yAxisG.call(yAxis);
+
+        var bars = g.selectAll("rect").data(data);
+        bars.enter().append("rect")
+          .attr("width",xScale.rangeBand());
+
+        //Denoter
+          svg.append("text")
+                           .attr("x",  600)
+                           .attr("y", 500 )
+                          // .style("text-anchor", "middle")
+                           .style("font-size",18)
+                           .style("font-weight","bold")
+                           .text("Year");
+
+          svg.append("text")
+               .attr("x", -190 )
+               .attr("y", 80 )
+               //.style("text-anchor", "middle")
+               .attr("transform", "rotate(-90)")
+               .style("font-size",18)
+               .style("font-weight","bold")
+               .attr("dy","-30")
+               .text("Theft value");
+
+
+        //Blue Bar
+          bars.attr("x",  function(d){return xScale(d[xColumn]);})
+
+            .attr("y", function(d){return yScale(d[yColumn]);})
+            .attr("height", function(d){return innerHeight - yScale(d[yColumn]);})
+            .attr("fill","#FFD700");
+
+
+          //Green Bar
+            //var bars = g.selectAll("rect").data(data);
+            bars.enter().append("rect")
+              .attr("width",xScale.rangeBand());
+            bars.attr("x",  function(d){return xScale(d[xColumn]);})
+            .attr("y", function(d){return yScale(d[yColumn]);})
+            .attr("height", function(d){return innerHeight - yScale(d["above500"]);})
+            .attr("fill","#00CED1");
+
+
+          //LEGEND
+            svg.append("text")
+           .text("Under 500")
+           .attr("dx",1080)
+           .attr("dy",47);
+           svg.append("rect")
+           .attr("width",15)
+           .attr("height",15)
+           .attr("x",1050)
+           .attr("y",35)
+           .attr("fill","#00CED1");
+
+           svg.append("text")
+           .text("Above 500")
+           .attr("dx",1080)
+           .attr("dy",72);
+           svg.append("rect")
+           .attr("width",15)
+           .attr("height",15)
+           .attr("x",1050)
+           .attr("y",60)
+           .attr("fill","#FFD700");
+
+
+   }
+   d3.json("part_1_json.json",type);
+
+
+ </script>
+
+</body>
+</html>
